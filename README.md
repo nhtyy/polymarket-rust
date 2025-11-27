@@ -5,7 +5,7 @@ This library supports the following operations
 - (Multiplexed) websocket reads
 - Some functionality from the Gamma client
 - Some functionality from the CLOB client.
-- On chain interationsL: split, merge, redeem.
+- On chain interactions: split, merge, redeem.
     - Neg risk also supported
 
 ### This library implicity is designed around using an EOA, not the default Safe wallet deployed by the Polymarket UI. Note that positions held by an EOA do not appear on the UI.
