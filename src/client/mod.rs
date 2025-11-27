@@ -62,12 +62,15 @@ pub struct PolymarketClient<P, S> {
 
 impl<P: Provider + WalletProvider, S: Signer + Send + Sync> PolymarketClient<P, S> {
     /// Connect to the Polymarket client with a provider and signer.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// Returns `PolymarketClientError::SignerNotCredentialed` if the provider does not have a credential for the signer.
     /// Returns `PolymarketClientError::InvalidChain` if the chain id is not supported.
-    pub async fn connect_with_provider(provider: P, signer: S) -> Result<Self, PolymarketClientError> {
+    pub async fn connect_with_provider(
+        provider: P,
+        signer: S,
+    ) -> Result<Self, PolymarketClientError> {
         if !provider.has_signer_for(&signer.address()) {
             return Err(PolymarketClientError::SignerNotCredentialed);
         }
@@ -170,8 +173,7 @@ impl<P, S> PolymarketClient<P, S> {
         Ok(self
             .clob_client
             .price_history(token_id, interval, fidelity_minutes)
-            .await?
-        )
+            .await?)
     }
 
     /// Get the order book for a given token id.
@@ -199,17 +201,33 @@ impl<P: Provider + WalletProvider, S: Signer + Send + Sync> PolymarketClient<P, 
     }
 
     /// Post a batch of GTC orders to the CLOB.
+    /// 
+    /// Note: All orders must be for the same market, 
+    /// this is explicity checked for in the method in debug mode.
     pub async fn post_gtc_orders(
         &self,
         market: &Market,
         orders: &[PolymarketOrder],
     ) -> Result<Vec<PostOrderResponse>, PolymarketClientError> {
+        debug_assert!(
+            orders
+                .iter()
+                .all(|order| { market.clob_token_ids.contains(&order.token_id()) }),
+            "All orders must be for the same market"
+        );
+
         // Create a sign the orders.
         let orders = orders.iter().map(|order| {
             let (token_id, side, price, size) = order.into_parts();
 
-            self.clob_client
-                .create_gtc_order(token_id, market.neg_risk, price, side, size, market.tick_size)
+            self.clob_client.create_gtc_order(
+                token_id,
+                market.neg_risk,
+                price,
+                side,
+                size,
+                market.tick_size,
+            )
         });
         let orders = futures::future::try_join_all(orders).await?;
 
@@ -220,17 +238,33 @@ impl<P: Provider + WalletProvider, S: Signer + Send + Sync> PolymarketClient<P, 
     }
 
     /// Post a batch of FOK orders to the CLOB.
+    /// 
+    /// Note: All orders must be for the same market, 
+    /// this is explicity checked for in the method in debug mode.
     pub async fn post_fok_orders(
         &self,
         market: &Market,
         orders: &[PolymarketOrder],
     ) -> Result<Vec<PostOrderResponse>, PolymarketClientError> {
+        debug_assert!(
+            orders
+                .iter()
+                .all(|order| { market.clob_token_ids.contains(&order.token_id()) }),
+            "All orders must be for the same market"
+        );
+
         // Create a sign the orders.
         let orders = orders.iter().map(|order| {
             let (token_id, side, price, size) = order.into_parts();
 
-            self.clob_client
-                .create_fok_order(token_id, market.neg_risk, price, side, size, market.tick_size)
+            self.clob_client.create_fok_order(
+                token_id,
+                market.neg_risk,
+                price,
+                side,
+                size,
+                market.tick_size,
+            )
         });
         let orders = futures::future::try_join_all(orders).await?;
 

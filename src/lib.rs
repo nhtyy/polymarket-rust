@@ -37,6 +37,13 @@ impl PolymarketOrder {
             } => (token_id, Side::SELL, price, size),
         }
     }
+
+    pub fn token_id(&self) -> U256 {
+        match self {
+            PolymarketOrder::Bid { token_id, .. } => *token_id,
+            PolymarketOrder::Ask { token_id, .. } => *token_id,
+        }
+    }
 }
 
 pub enum Rounding {
