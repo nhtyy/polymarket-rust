@@ -76,7 +76,7 @@ client
 // Place a limit order 
 
 let order = PolymarketOrder::Bid {
-    token_id: market.clob_token_ids[0],
+    token_idx: TokenIndex::Zero,
     size: 0.1
     price: 0.5 
 };

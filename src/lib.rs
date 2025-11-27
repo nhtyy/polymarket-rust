@@ -10,12 +10,12 @@ const TOKEN_SCALE: f64 = 1e6;
 #[derive(Debug, Clone, Copy)]
 pub enum PolymarketOrder {
     Bid {
-        token_id: TokenIndex,
+        token_idx: TokenIndex,
         price: f64,
         size: f64,
     },
     Ask {
-        token_id: TokenIndex,
+        token_idx: TokenIndex,
         price: f64,
         size: f64,
     },
@@ -25,22 +25,22 @@ impl PolymarketOrder {
     pub fn into_parts(self) -> (TokenIndex, Side, f64, f64) {
         match self {
             PolymarketOrder::Bid {
-                token_id,
+                token_idx,
                 price,
                 size,
-            } => (token_id, Side::BUY, price, size),
+            } => (token_idx, Side::BUY, price, size),
             PolymarketOrder::Ask {
-                token_id,
+                token_idx,
                 price,
                 size,
-            } => (token_id, Side::SELL, price, size),
+            } => (token_idx, Side::SELL, price, size),
         }
     }
 
     pub fn token_id(&self) -> TokenIndex {
         match self {
-            PolymarketOrder::Bid { token_id, .. } => *token_id,
-            PolymarketOrder::Ask { token_id, .. } => *token_id,
+            PolymarketOrder::Bid { token_idx, .. } => *token_idx,
+            PolymarketOrder::Ask { token_idx, .. } => *token_idx,
         }
     }
 }
