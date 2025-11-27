@@ -48,6 +48,8 @@ pub enum PolymarketClientError {
     ClobClientError(#[from] APIError),
     #[error("WS Error: {0}")]
     WSError(#[from] WSClientError),
+    #[error("Provider should be able to sign on behalf of the signer")]
+    SignerNotCredentialed,
 }
 
 #[derive(Clone)]
@@ -59,7 +61,17 @@ pub struct PolymarketClient<P, S> {
 }
 
 impl<P: Provider + WalletProvider, S: Signer + Send + Sync> PolymarketClient<P, S> {
-    pub async fn connect(provider: P, signer: S) -> Result<Self, PolymarketClientError> {
+    /// Connect to the Polymarket client with a provider and signer.
+    /// 
+    /// # Errors
+    /// 
+    /// Returns `PolymarketClientError::SignerNotCredentialed` if the provider does not have a credential for the signer.
+    /// Returns `PolymarketClientError::InvalidChain` if the chain id is not supported.
+    pub async fn connect_with_provider(provider: P, signer: S) -> Result<Self, PolymarketClientError> {
+        if !provider.has_signer_for(&signer.address()) {
+            return Err(PolymarketClientError::SignerNotCredentialed);
+        }
+
         let chain_id = provider.get_chain_id().await?;
 
         let contract_config = ContractConfig::from_chain_id(chain_id)
@@ -75,7 +87,7 @@ impl<P: Provider + WalletProvider, S: Signer + Send + Sync> PolymarketClient<P, 
 }
 
 impl<P, S> PolymarketClient<P, S> {
-    /// Convenience method to get a stream of market messages for a given asset id.
+    /// Get a stream of last trade price messages for a given asset id.
     pub async fn last_trade_price_stream(
         &self,
         asset_id: U256,
@@ -83,7 +95,7 @@ impl<P, S> PolymarketClient<P, S> {
         market_client(asset_id).await
     }
 
-    /// Convenience method to get a stream of market update messages for a given asset id.
+    /// Get a stream of market update messages for a given asset id.
     pub async fn market_update_stream(
         &self,
         asset_id: U256,
@@ -91,6 +103,7 @@ impl<P, S> PolymarketClient<P, S> {
         market_client(asset_id).await
     }
 
+    /// Get a stream of tick size change messages for a given asset id.
     pub async fn tick_size_stream(
         &self,
         asset_id: U256,
@@ -98,7 +111,7 @@ impl<P, S> PolymarketClient<P, S> {
         market_client(asset_id).await
     }
 
-    /// Convenience method to get a stream of price change messages for a given asset id.
+    /// Get a stream of price change messages for a given asset id.
     pub async fn price_change_stream(
         &self,
         asset_id: U256,
@@ -106,7 +119,7 @@ impl<P, S> PolymarketClient<P, S> {
         market_client(asset_id).await
     }
 
-    /// Convenience method to get a stream of trade messages for a given asset id.
+    /// Get a stream of trade messages for a given market.
     pub async fn trade_stream(
         &self,
         market: B256,
@@ -147,6 +160,7 @@ impl<P, S> PolymarketClient<P, S> {
             .await?)
     }
 
+    /// Get the price history for a given token id.
     pub async fn price_history(
         &self,
         token_id: U256,
@@ -168,6 +182,7 @@ impl<P, S> PolymarketClient<P, S> {
             .map_err(Into::into)
     }
 
+    /// Get a stream of the current market rewards.
     pub fn get_market_rewards(&self) -> PaginatedStream<MarketReward> {
         self.clob_client.get_market_rewards()
     }
@@ -175,6 +190,7 @@ impl<P, S> PolymarketClient<P, S> {
 
 // CLOB API
 impl<P: Provider + WalletProvider, S: Signer + Send + Sync> PolymarketClient<P, S> {
+    /// Get a stream of the trades for a given condition id, by the signer.
     pub async fn trades(
         &self,
         condition_id: B256,
@@ -182,7 +198,7 @@ impl<P: Provider + WalletProvider, S: Signer + Send + Sync> PolymarketClient<P, 
         Ok(self.clob_client.trades(condition_id).await?)
     }
 
-    /// Post a batch of orders to the CLOB.
+    /// Post a batch of GTC orders to the CLOB.
     pub async fn post_gtc_orders(
         &self,
         market: &Market,
@@ -203,6 +219,7 @@ impl<P: Provider + WalletProvider, S: Signer + Send + Sync> PolymarketClient<P, 
         Ok(self.clob_client.post_orders(&orders).await?)
     }
 
+    /// Post a batch of FOK orders to the CLOB.
     pub async fn post_fok_orders(
         &self,
         market: &Market,
@@ -239,6 +256,7 @@ impl<P: Provider + WalletProvider, S: Signer + Send + Sync> PolymarketClient<P, 
         Ok(self.clob_client.get_open_orders(token_id).await?)
     }
 
+    /// Get an open order by its id.
     pub async fn get_order(&self, order_id: B256) -> Result<OpenOrders, PolymarketClientError> {
         Ok(self.clob_client.get_order(order_id).await?)
     }
