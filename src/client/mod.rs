@@ -209,19 +209,12 @@ impl<P: Provider + WalletProvider, S: Signer + Send + Sync> PolymarketClient<P, 
         market: &Market,
         orders: &[PolymarketOrder],
     ) -> Result<Vec<PostOrderResponse>, PolymarketClientError> {
-        debug_assert!(
-            orders
-                .iter()
-                .all(|order| { market.clob_token_ids.contains(&order.token_id()) }),
-            "All orders must be for the same market"
-        );
-
         // Create a sign the orders.
         let orders = orders.iter().map(|order| {
             let (token_id, side, price, size) = order.into_parts();
 
             self.clob_client.create_gtc_order(
-                token_id,
+                market.token_id(token_id),
                 market.neg_risk,
                 price,
                 side,
@@ -246,19 +239,12 @@ impl<P: Provider + WalletProvider, S: Signer + Send + Sync> PolymarketClient<P, 
         market: &Market,
         orders: &[PolymarketOrder],
     ) -> Result<Vec<PostOrderResponse>, PolymarketClientError> {
-        debug_assert!(
-            orders
-                .iter()
-                .all(|order| { market.clob_token_ids.contains(&order.token_id()) }),
-            "All orders must be for the same market"
-        );
-
         // Create a sign the orders.
         let orders = orders.iter().map(|order| {
             let (token_id, side, price, size) = order.into_parts();
 
             self.clob_client.create_fok_order(
-                token_id,
+                market.token_id(token_id),
                 market.neg_risk,
                 price,
                 side,

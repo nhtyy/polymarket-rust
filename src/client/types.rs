@@ -3,6 +3,8 @@ use std::str::FromStr;
 use alloy::primitives::{B256, U256};
 use chrono::{DateTime, Local};
 
+use crate::TokenIndex;
+
 /// The metadata about some market.
 #[derive(Clone, Debug)]
 pub struct Market {
@@ -19,6 +21,25 @@ pub struct Market {
     pub tick_size: f64,
     pub order_min_size: u64,
     pub neg_risk: bool,
+}
+
+impl Market {
+    pub fn token_id(&self, token_id: TokenIndex) -> U256 {
+        match token_id {
+            TokenIndex::Zero => self.clob_token_ids[0],
+            TokenIndex::One => self.clob_token_ids[1],
+        }
+    }
+
+    pub fn token_index(&self, token_id: U256) -> Option<TokenIndex> {
+        if self.clob_token_ids[0] == token_id {
+            Some(TokenIndex::Zero)
+        } else if self.clob_token_ids[1] == token_id {
+            Some(TokenIndex::One)
+        } else {    
+            None
+        }
+    }
 }
 
 pub use api::BookResponse as Book;

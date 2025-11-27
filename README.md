@@ -8,7 +8,7 @@ This library supports the following operations
 - On chain interactions: split, merge, redeem.
     - Neg risk also supported
 
-### This library implicity is designed around using an EOA, not the default Safe wallet deployed by the Polymarket UI. Note that positions held by an EOA do not appear on the UI.
+### This library implicity is designed around using an EOA with the default nonce, not the Safe wallet deployed by the Polymarket UI. Note that positions held by an EOA do not appear on the UI.
 
 ## Example
 

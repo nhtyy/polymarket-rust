@@ -72,7 +72,6 @@ pub async fn create_signed_order<S: Signer + Sync>(
         0
     };
 
-    // ?.
     let nonce = 0;
     // no fee yet
     let fee_rate_bps = 0;

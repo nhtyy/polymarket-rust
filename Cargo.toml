@@ -25,6 +25,3 @@ alloy = { version = "1.0.41", features = ["full", "json-rpc", "eip712", "rand"] 
 num-traits = "0.2.19"
 uuid = { version = "1.18.1", features = ["serde", "v4"] }
 
-# Needed for uint256 -> f64 conversion
-ruint = { version = "1.17.0", features = ["num-traits"] }
-
