@@ -41,12 +41,12 @@ let market = client
 // Get balances for a given market.
 
 let inventory = client
-    .ctf_balance(market.clob_token_ids[0], market.neg_risk)
+    .ctf_balance(&market, TokenIndex::Zero)
     .await
     .expect("Failed to get inventory");
 
 let complement_inventory = client
-    .ctf_balance(market.clob_token_ids[1], market.neg_risk)
+    .ctf_balance(&market, TokenIndex::One)
     .await
     .expect("Failed to get complement inventory");
 

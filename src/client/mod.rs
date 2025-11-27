@@ -22,6 +22,7 @@ use contract::{
 };
 use thiserror::Error;
 
+use crate::TokenIndex;
 use crate::api::HistoricalInterval;
 use crate::api::PolymarketHistoryResponse;
 use crate::api::TickSizeChange;
@@ -425,14 +426,14 @@ impl<P: Provider + WalletProvider, S: Signer + Send + Sync> PolymarketClient<P, 
     /// Get the balance of a given position id.
     pub async fn ctf_balance(
         &self,
-        position_id: U256,
-        neg_risk: bool,
+        market: &Market,
+        idx: TokenIndex,
     ) -> Result<U256, PolymarketClientError> {
-        let (ctf, _) = self.contract_config.get_ctf_and_collateral(neg_risk);
+        let (ctf, _) = self.contract_config.get_ctf_and_collateral(market.neg_risk);
         let conditional_token = ConditionalToken::new(ctf, &self.provider);
 
         Ok(conditional_token
-            .balanceOf(self.provider.default_signer_address(), position_id)
+            .balanceOf(self.provider.default_signer_address(), market.token_id(idx))
             .call()
             .await?)
     }
